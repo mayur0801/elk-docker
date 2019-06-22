@@ -193,8 +193,12 @@ else
   fi
 
   service kibana start
-  OUTPUT_LOGFILES+="/var/log/kibana/kibana5.log "
+  OUTPUT_LOGFILES+="/var/log/kibana/kibana7.log "
 fi
+
+### APM Server
+/opt/apmserver/apmserver -e
+
 
 # Exit if nothing has been started
 if [ "$ELASTICSEARCH_START" -ne "1" ] && [ "$LOGSTASH_START" -ne "1" ] \
@@ -229,7 +233,7 @@ if [ -x /usr/local/bin/elk-post-hooks.sh ]; then
     if [ ! "$(curl ${KIBANA_URL} 2> /dev/null)" ]; then
       echo "Couln't start Kibana. Exiting."
       echo "Kibana log follows below."
-      cat /var/log/kibana/kibana5.log
+      cat /var/log/kibana/kibana7.log
       exit 1
     fi
   fi

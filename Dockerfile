@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch, Logstash, Kibana 6.7.0
+# Elasticsearch, Logstash, Kibana 7.x.x
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -7,8 +7,9 @@
 # Run with:
 # docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk <repo-user>/elk
 
-FROM phusion/baseimage
-MAINTAINER Sebastien Pujadas http://pujadas.net
+FROM centos
+
+MAINTAINER Mayuresh Bhardwaj
 ENV REFRESHED_AT 2017-02-28
 
 
@@ -18,7 +19,7 @@ ENV REFRESHED_AT 2017-02-28
 
 ### install prerequisites (cURL, gosu, JDK, tzdata)
 
-ENV GOSU_VERSION 1.10
+ENV GOSU_VERSION 1.11
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN set -x \
@@ -39,17 +40,18 @@ RUN set -x \
  && set +x
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
+ENV OS linux
+ENV MODE x86_64
 
-
-ENV ELK_VERSION 6.7.0
+ENV ELK_VERSION 7.1.1
 
 ### install Elasticsearch
 
 ENV ES_VERSION ${ELK_VERSION}
 ENV ES_HOME /opt/elasticsearch
-ENV ES_PACKAGE elasticsearch-${ES_VERSION}.tar.gz
-ENV ES_GID 991
-ENV ES_UID 991
+ENV ES_PACKAGE elasticsearch-${ES_VERSION}-${OS}-${MODE}.tar.gz
+ENV ES_GID 1100
+ENV ES_UID 1100
 ENV ES_PATH_CONF /etc/elasticsearch
 ENV ES_PATH_BACKUP /var/backups
 
@@ -67,9 +69,9 @@ RUN mkdir ${ES_HOME} \
 
 ENV LOGSTASH_VERSION ${ELK_VERSION}
 ENV LOGSTASH_HOME /opt/logstash
-ENV LOGSTASH_PACKAGE logstash-${LOGSTASH_VERSION}.tar.gz
-ENV LOGSTASH_GID 992
-ENV LOGSTASH_UID 992
+ENV LOGSTASH_PACKAGE logstash-${LOGSTASH_VERSION}.tar.gz 
+ENV LOGSTASH_GID 1101
+ENV LOGSTASH_UID 1101
 ENV LOGSTASH_PATH_CONF /etc/logstash
 ENV LOGSTASH_PATH_SETTINGS ${LOGSTASH_HOME}/config
 
@@ -87,9 +89,9 @@ RUN mkdir ${LOGSTASH_HOME} \
 
 ENV KIBANA_VERSION ${ELK_VERSION}
 ENV KIBANA_HOME /opt/kibana
-ENV KIBANA_PACKAGE kibana-${KIBANA_VERSION}-linux-x86_64.tar.gz
-ENV KIBANA_GID 993
-ENV KIBANA_UID 993
+ENV KIBANA_PACKAGE kibana-${KIBANA_VERSION}-${OS}-${MODE}.tar.gz #kibana-7.1.1-linux-x86_64.tar.gz
+ENV KIBANA_GID 1102
+ENV KIBANA_UID 1102
 
 RUN mkdir ${KIBANA_HOME} \
  && curl -O https://artifacts.elastic.co/downloads/kibana/${KIBANA_PACKAGE} \
@@ -99,6 +101,23 @@ RUN mkdir ${KIBANA_HOME} \
  && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -u ${KIBANA_UID} -g kibana kibana \
  && mkdir -p /var/log/kibana \
  && chown -R kibana:kibana ${KIBANA_HOME} /var/log/kibana
+
+### install APM SERVER
+
+ENV APM_VERSION ${ELK_VERSION}
+ENV APM_HOME /opt/apmserver
+ENV APM_PACKAGE apm-server-${APM_VERSION}-${OS}-${MODE}.tar.gz
+ENV APM_GID 1105
+ENV APM_UID 1105
+
+RUN mkdir ${APM_HOME} \
+    && curl -O https://artifacts.elastic.co/downloads/apm-server/${APM_PACKAGE} \
+    && tar xzf ${APM_PACKAGE} -C ${APM_HOME} --strip-components=1 \
+    && rm -f ${APM_PACKAGE} \
+    && groupadd -r apm -g ${APM_GID} \
+    && useradd -r -s /usr/sbin/nologin -d ${APM_HOME} -c "ELK APM service user" -u ${APM_UID} -g apm apm \
+    && mkdir -p /var/log/apm \
+    && chown -R apm:apm ${APM_HOME} /var/log/apm
 
 
 ###############################################################################
@@ -123,6 +142,12 @@ ADD ./kibana-init /etc/init.d/kibana
 RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana \
  && chmod +x /etc/init.d/kibana
 
+### APM-SERVER <WIP>
+
+ADD ./apm-server ${APM_HOME}/apm-server
+
+# Add healthcheck for docker/healthcheck metricset to check during testing
+HEALTHCHECK CMD exit 0
 
 ###############################################################################
 #                               CONFIGURATION
@@ -175,6 +200,10 @@ RUN chmod 644 /etc/logrotate.d/elasticsearch \
 
 ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
 
+### configure APM Server
+
+ADD ./apm-server.docker.yml ${APM_HOME}/apm-server.yml
+
 
 ###############################################################################
 #                                   START
@@ -183,7 +212,7 @@ ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
 ADD ./start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-EXPOSE 5601 9200 9300 5044
+EXPOSE 5601 9200 9300 5044 8200
 VOLUME /var/lib/elasticsearch
 
 CMD [ "/usr/local/bin/start.sh" ]
