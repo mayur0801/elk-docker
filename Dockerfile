@@ -32,8 +32,7 @@ RUN gpg --keyserver pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4
     && gosu nobody true \
     && yum update \
     && yum install -y openjdk-8-jdk tzdata \
-    && yum clean \
-    && set +x
+    && yum clean
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
 ENV OS linux
