@@ -15,9 +15,9 @@
 
 _term() {
   echo "Terminating ELK"
-  service elasticsearch stop
-  service logstash stop
-  service kibana stop
+  /etc/init.d/elasticsearch stop
+  /etc/init.d/logstash stop
+  /etc/init.d/kibana stop
   exit 0
 }
 
