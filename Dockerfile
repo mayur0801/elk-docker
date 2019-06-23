@@ -34,8 +34,7 @@ RUN gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364
     # Verify that the binary works
     && gosu nobody true \
     && yum update -y \
-    && yum install -y java-1.8.0-openjdk tzdata \
-    && yum clean
+    && yum install -y java-1.8.0-openjdk tzdata
 
 
 ENV JAVA_HOME /usr/lib/jvm/jre-1.8.0
