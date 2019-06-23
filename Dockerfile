@@ -23,8 +23,8 @@ ENV GOSU_VERSION 1.11
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN set -x \
- && apt-get update -qq \
- && apt-get install -qqy --no-install-recommends ca-certificates curl \
+ && yum update -qq \
+ && yum install -qqy --no-install-recommends ca-certificates curl \
  && rm -rf /var/lib/apt/lists/* \
  && curl -L -o /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
  && curl -L -o /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
@@ -34,9 +34,9 @@ RUN set -x \
  && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
  && chmod +x /usr/local/bin/gosu \
  && gosu nobody true \
- && apt-get update -qq \
- && apt-get install -qqy openjdk-8-jdk tzdata \
- && apt-get clean \
+ && yum update -qq \
+ && yum install -qqy openjdk-8-jdk tzdata \
+ && yum clean \
  && set +x
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
