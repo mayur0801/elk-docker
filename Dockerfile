@@ -53,7 +53,7 @@ ENV ES_UID 1100
 ENV ES_PATH_CONF /etc/elasticsearch
 ENV ES_PATH_BACKUP /var/backups
 
-RUN mkdir ${ES_HOME} \
+RUN mkdir -p ${ES_HOME} \
  && curl -O https://artifacts.elastic.co/downloads/elasticsearch/${ES_PACKAGE} \
  && tar xzf ${ES_PACKAGE} -C ${ES_HOME} --strip-components=1 \
  && rm -f ${ES_PACKAGE} \
@@ -73,7 +73,7 @@ ENV LOGSTASH_UID 1101
 ENV LOGSTASH_PATH_CONF /etc/logstash
 ENV LOGSTASH_PATH_SETTINGS ${LOGSTASH_HOME}/config
 
-RUN mkdir ${LOGSTASH_HOME} \
+RUN mkdir -p ${LOGSTASH_HOME} \
  && curl -O https://artifacts.elastic.co/downloads/logstash/${LOGSTASH_PACKAGE} \
  && tar xzf ${LOGSTASH_PACKAGE} -C ${LOGSTASH_HOME} --strip-components=1 \
  && rm -f ${LOGSTASH_PACKAGE} \
@@ -91,7 +91,7 @@ ENV KIBANA_PACKAGE kibana-${KIBANA_VERSION}-${OS}-${MODE}.tar.gz
 ENV KIBANA_GID 1102
 ENV KIBANA_UID 1102
 
-RUN mkdir ${KIBANA_HOME} \
+RUN mkdir -p ${KIBANA_HOME} \
  && curl -O https://artifacts.elastic.co/downloads/kibana/${KIBANA_PACKAGE} \
  && tar xzf ${KIBANA_PACKAGE} -C ${KIBANA_HOME} --strip-components=1 \
  && rm -f ${KIBANA_PACKAGE} \
@@ -108,7 +108,7 @@ ENV APM_PACKAGE apm-server-${APM_VERSION}-${OS}-${MODE}.tar.gz
 ENV APM_GID 1105
 ENV APM_UID 1105
 
-RUN mkdir ${APM_HOME} \
+RUN mkdir -p ${APM_HOME} \
     && curl -O https://artifacts.elastic.co/downloads/apm-server/${APM_PACKAGE} \
     && tar xzf ${APM_PACKAGE} -C ${APM_HOME} --strip-components=1 \
     && rm -f ${APM_PACKAGE} \
@@ -163,7 +163,7 @@ RUN cp ${ES_HOME}/config/log4j2.properties ${ES_HOME}/config/jvm.options \
 ### configure Logstash
 
 # certs/keys for Beats and Lumberjack input
-RUN mkdir -p /etc/pki/tls/certs && mkdir /etc/pki/tls/private
+RUN mkdir -p /etc/pki/tls/certs && mkdir -p /etc/pki/tls/private
 ADD ./logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
 ADD ./logstash-beats.key /etc/pki/tls/private/logstash-beats.key
 
